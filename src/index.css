@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-arabic: 'Amiri', 'Scheherazade New', serif;
+  }
+  
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+.font-arabic {
+  font-family: 'Amiri', 'Scheherazade New', serif;
+}
+
+/* Senior-friendly high contrast and touch ergonomics */
+.senior-text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}

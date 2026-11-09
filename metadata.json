@@ -1,0 +1,6 @@
+{
+  "name": "NurGrafik",
+  "description": "Penjana poster aktiviti masjid dan komuniti yang terang, kemas, dan pantas untuk WhatsApp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

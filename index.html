@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ms">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function() {
+        try {
+          var originalFetch = window.fetch ? window.fetch.bind(window) : null;
+          var activeFetch = originalFetch;
+          Object.defineProperty(window, 'fetch', {
+            get: function() {
+              return activeFetch;
+            },
+            set: function(fn) {
+              activeFetch = fn;
+            },
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {}
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NurGrafik - Penjana Poster Masjid & Komuniti</title>
+    <meta name="description" content="Penjana poster aktiviti masjid dan komuniti yang terang, kemas, dan pantas untuk WhatsApp." />
+    <meta property="og:title" content="NurGrafik - Penjana Poster Masjid & Komuniti" />
+    <meta property="og:description" content="Penjana poster aktiviti masjid dan komuniti yang terang, kemas, dan pantas untuk WhatsApp." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Scheherazade+New:wght@600;700&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-[#FAF7F2] text-slate-900 antialiased font-sans selection:bg-amber-200 selection:text-emerald-950">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
