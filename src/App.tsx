@@ -25,6 +25,7 @@ export default function App() {
           speakerTitle: parsed.speakerTitle || defaultData.speakerTitle,
           speakerCredential: parsed.speakerCredential || defaultData.speakerCredential,
           contactNumber: (parsed.contactNumber && parsed.contactNumber.trim()) || defaultData.contactNumber,
+          decorativeStyle: parsed.decorativeStyle || defaultData.decorativeStyle || 'kubah-menara',
           aspectRatio: '1:1',
           showBismillah: true,
           showHijri: true,

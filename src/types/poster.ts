@@ -4,6 +4,8 @@ export type ThemeId = 'zamrud-emas' | 'nilam-malam' | 'hijau-harmoni' | 'merak-a
 
 export type LayoutVariant = 'gerbang-islami' | 'moden-bersih' | 'sepanduk-elegan';
 
+export type DecorativeStyle = 'kubah-menara' | 'mihrab-lentera' | 'arabesque-bintang' | 'bulan-bintang' | 'moden';
+
 export interface PosterData {
   title: string;
   subCategory: string;
@@ -19,6 +21,8 @@ export interface PosterData {
   notes: string;
   themeId: ThemeId;
   layoutVariant: LayoutVariant;
+  decorativeStyle?: DecorativeStyle;
+  tagline?: string;
   aspectRatio: AspectRatio;
   showBismillah: boolean;
   showHijri: boolean;

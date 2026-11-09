@@ -2,12 +2,9 @@ import React, { useState } from 'react';
 import { 
   Sparkles, 
   RefreshCw,
-  Trash2,
-  Check,
-  CheckCircle2
+  Trash2
 } from 'lucide-react';
-import { PosterData, ThemeId, LayoutVariant } from '../types/poster';
-import { THEME_CONFIGS } from '../utils/themePresets';
+import { PosterData, ThemeId, LayoutVariant, DecorativeStyle } from '../types/poster';
 import { parseMalayEventText } from '../utils/textParser';
 
 interface InputPanelProps {
@@ -39,7 +36,6 @@ Haji Razak (019-2345678)
 Biro Dakwah Masjid Al-Falah`);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [hasGenerated, setHasGenerated] = useState(false);
 
   // Auto-sync on mount if data is missing speaker or contact details
   React.useEffect(() => {
@@ -52,6 +48,7 @@ Biro Dakwah Masjid Al-Falah`);
         speakerTitle: parsed.speakerTitle || data.speakerTitle,
         speakerCredential: parsed.speakerCredential || data.speakerCredential,
         contactNumber: parsed.contactNumber || data.contactNumber,
+        decorativeStyle: data.decorativeStyle || parsed.decorativeStyle || 'kubah-menara',
         aspectRatio: '1:1',
         showBismillah: true,
         showHijri: true,
@@ -59,7 +56,7 @@ Biro Dakwah Masjid Al-Falah`);
     }
   }, []);
 
-  // Intelligent selection based on raw text
+  // Intelligent selection based on raw text using free Gemini 3.8 Flash model
   const handleGenerate = async () => {
     const textToAnalyze = rawText.trim();
     if (!textToAnalyze) return;
@@ -71,13 +68,14 @@ Biro Dakwah Masjid Al-Falah`);
     onChange({
       ...data,
       ...localParsed,
+      decorativeStyle: localParsed.decorativeStyle || 'kubah-menara',
       aspectRatio: '1:1',
       showBismillah: true,
       showHijri: true,
     } as PosterData);
 
     try {
-      // 2. Call backend for deep Gemini semantic parsing
+      // 2. Call backend for Gemini 3.8 Flash semantic parsing & design expert structuring
       const response = await fetch('/api/parse-event', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -89,6 +87,7 @@ Biro Dakwah Masjid Al-Falah`);
         const d = resData.data;
         const selectedThemeId = (d.suggestedTheme as ThemeId) || localParsed.suggestedTheme || data.themeId;
         const selectedLayout = (d.suggestedLayout as LayoutVariant) || localParsed.suggestedLayout || data.layoutVariant;
+        const selectedDecStyle = (d.decorativeStyle as DecorativeStyle) || localParsed.decorativeStyle || data.decorativeStyle || 'kubah-menara';
 
         onChange({
           ...data,
@@ -106,15 +105,14 @@ Biro Dakwah Masjid Al-Falah`);
           notes: d.notes || localParsed.notes || data.notes,
           themeId: selectedThemeId,
           layoutVariant: selectedLayout,
+          decorativeStyle: selectedDecStyle,
           aspectRatio: '1:1',
           showBismillah: true,
           showHijri: true,
         });
-
-        setHasGenerated(true);
       }
     } catch {
-      setHasGenerated(true);
+      // Graceful fallback to client-side parse already applied
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +120,6 @@ Biro Dakwah Masjid Al-Falah`);
 
   const handleClear = () => {
     setRawText('');
-    setHasGenerated(false);
   };
 
   const inputSizeClass = isLargeText ? 'text-lg p-4' : 'text-base p-3';
@@ -130,7 +127,7 @@ Biro Dakwah Masjid Al-Falah`);
 
   return (
     <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-xs border border-amber-900/10 space-y-5">
-      {/* 1. Header with clear button */}
+      {/* Header with clear button */}
       <div className="flex items-center justify-between">
         <label className={`text-slate-900 ${labelSizeClass}`}>
           Masukkan Teks Poster / Pengumuman:
@@ -139,7 +136,7 @@ Biro Dakwah Masjid Al-Falah`);
           <button
             type="button"
             onClick={handleClear}
-            className="text-xs text-slate-500 hover:text-red-600 flex items-center gap-1 font-semibold transition-colors py-1 px-2 rounded-lg hover:bg-slate-100 touch-target"
+            className="text-xs text-slate-500 hover:text-red-600 flex items-center gap-1 font-semibold transition-colors py-1 px-2 rounded-lg hover:bg-slate-100 touch-target cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" />
             <span>Kosongkan</span>
@@ -147,16 +144,16 @@ Biro Dakwah Masjid Al-Falah`);
         )}
       </div>
 
-      {/* 2. Textarea */}
+      {/* Textarea */}
       <textarea
-        rows={10}
+        rows={11}
         value={rawText}
         onChange={(e) => setRawText(e.target.value)}
         placeholder="Tampal atau taip mesej aktiviti di sini (cth: Kuliah Maghrib bersama Ustaz, Program Ramadan, Gotong-Royong, Kursus Jenazah, atau Infaq Karpet)..."
         className={`w-full rounded-2xl border-2 border-slate-300 focus:border-emerald-600 focus:ring-0 transition-colors bg-slate-50/60 leading-relaxed text-slate-900 font-sans ${inputSizeClass}`}
       />
 
-      {/* 3. Primary Generate Button */}
+      {/* Primary Generate Button */}
       <button
         onClick={handleGenerate}
         disabled={isLoading || !rawText.trim()}
@@ -165,7 +162,7 @@ Biro Dakwah Masjid Al-Falah`);
         {isLoading ? (
           <>
             <RefreshCw className="w-5 h-5 animate-spin" />
-            <span>Sedang Memilih Tema & Menjana Poster...</span>
+            <span>Sedang Menjana...</span>
           </>
         ) : (
           <>
@@ -174,26 +171,6 @@ Biro Dakwah Masjid Al-Falah`);
           </>
         )}
       </button>
-
-      {/* 4. Generation Confirmation */}
-      {hasGenerated && (
-        <div className="p-3.5 rounded-2xl bg-emerald-50 text-emerald-950 border border-emerald-200 text-sm font-semibold flex items-center gap-2.5 animate-in fade-in duration-200">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <span>Poster telah dijana dengan tema dan susun atur yang sesuai secara pintar.</span>
-        </div>
-      )}
-
-      {/* 5. Mandatory Poster Features */}
-      <div className="flex flex-wrap items-center gap-2.5 pt-1">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-xs sm:text-sm font-semibold">
-          <Check className="w-4 h-4 text-emerald-700 shrink-0" />
-          <span>Paparkan Bismillah di Atas</span>
-        </div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-xs sm:text-sm font-semibold">
-          <Check className="w-4 h-4 text-emerald-700 shrink-0" />
-          <span>Sertakan Tarikh Hijrah</span>
-        </div>
-      </div>
     </div>
   );
 };

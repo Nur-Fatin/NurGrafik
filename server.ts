@@ -22,9 +22,10 @@ function heuristicParseEvent(rawText: string) {
   let subCategory = 'Kuliah Agama';
   let suggestedTheme: 'zamrud-emas' | 'nilam-malam' | 'hijau-harmoni' | 'merak-anggun' | 'fajar-lembut' = 'zamrud-emas';
   let suggestedLayout: 'gerbang-islami' | 'moden-bersih' | 'sepanduk-elegan' = 'gerbang-islami';
+  let decorativeStyle: 'kubah-menara' | 'mihrab-lentera' | 'arabesque-bintang' | 'bulan-bintang' | 'moden' = 'kubah-menara';
 
-  // Intelligent Theme & Layout Selection
-  // 1. Program Ramadan, Solat Hajat, Nuzul Quran & Qiamullail -> Nilam Malam & Bintang
+  // Intelligent Theme, Layout & Islamic Decorative Style Selection
+  // 1. Program Ramadan, Solat Hajat, Nuzul Quran & Qiamullail -> Nilam Malam & Bulan Bintang
   if (
     textLower.includes('ramadan') || 
     textLower.includes('iftar') || 
@@ -37,8 +38,10 @@ function heuristicParseEvent(rawText: string) {
   ) {
     if (textLower.includes('ramadan') || textLower.includes('iftar') || textLower.includes('berbuka') || textLower.includes('tarawih') || textLower.includes('nuzul')) {
       subCategory = 'Program Ramadan';
+      decorativeStyle = 'bulan-bintang';
     } else {
       subCategory = 'Solat Hajat';
+      decorativeStyle = 'mihrab-lentera';
     }
     suggestedTheme = 'nilam-malam';
     suggestedLayout = 'gerbang-islami';
@@ -54,8 +57,9 @@ function heuristicParseEvent(rawText: string) {
     subCategory = 'Gotong-Royong';
     suggestedTheme = 'hijau-harmoni';
     suggestedLayout = 'moden-bersih';
+    decorativeStyle = 'moden';
   } 
-  // 3. Kursus, Bengkel, Jenazah, Seminar -> Merak Laut & Emas
+  // 3. Kursus, Bengkel, Jenazah, Seminar -> Merak Laut & Emas & Arabesque
   else if (
     textLower.includes('kursus') || 
     textLower.includes('bengkel') || 
@@ -66,6 +70,7 @@ function heuristicParseEvent(rawText: string) {
     subCategory = 'Kursus & Bengkel';
     suggestedTheme = 'merak-anggun';
     suggestedLayout = 'moden-bersih';
+    decorativeStyle = 'arabesque-bintang';
   } 
   // 4. Infaq, Wakaf, Derma, Sumbangan -> Krim Hangat & Ambar Di-Raja
   else if (
@@ -79,12 +84,14 @@ function heuristicParseEvent(rawText: string) {
     subCategory = 'Infaq & Wakaf';
     suggestedTheme = 'fajar-lembut';
     suggestedLayout = 'sepanduk-elegan';
+    decorativeStyle = 'mihrab-lentera';
   } 
   // 5. Kuliah Agama, Pengajian Umum, Masjid -> Hijau Zamrud & Emas (Pilihan Utama Masjid)
   else {
     subCategory = 'Kuliah Agama';
     suggestedTheme = 'zamrud-emas';
     suggestedLayout = 'gerbang-islami';
+    decorativeStyle = 'kubah-menara';
   }
 
   // Clean quotes/asterisks from WhatsApp copy
@@ -226,10 +233,11 @@ function heuristicParseEvent(rawText: string) {
     notes: clean(notes).slice(0, 140),
     suggestedTheme,
     suggestedLayout,
+    decorativeStyle,
   };
 }
 
-// API endpoint for parsing event text using Gemini or heuristic fallback
+// API endpoint for parsing event text using Gemini 3.8 Flash (Free model) or heuristic fallback
 app.post('/api/parse-event', async (req: Request, res: Response) => {
   const { rawText } = req.body;
 
@@ -255,56 +263,69 @@ app.post('/api/parse-event', async (req: Request, res: Response) => {
       },
     });
 
-    const prompt = `Anda ialah pembantu pintar biro penerangan masjid dan komuniti di Malaysia/Nusantara.
-Tugas anda: Analisis teks pengumuman/WhatsApp berikut dan ekstrak maklumat terperinci untuk dijadikan poster grafik rasmi yang berkualiti tinggi.
+    const systemInstruction = `Anda ialah Pakar Kanan Reka Bentuk Grafik Masjid & Komuniti di Nusantara (Malaysia, Brunei, Singapura, Indonesia).
+Kepakaran utama anda ialah menganalisis pengumuman aktiviti kariah WhatsApp dan menstrukturkan poster grafik 1:1 (1080x1080) yang berimpak tinggi, berkontras optimum untuk jemaah warga emas (60-80 tahun), kemas, tiada ruang terbazir, serta sarat dengan seni reka visual Islamik yang memikat hati.
 
-Format balasan WAJIB dalam JSON SAHAJA mengikut skema berikut:
+Prinsip Reka Bentuk Utama:
+1. Kejelasan Optimum & Kontras Tinggi: Nama penceramah, tajuk, tarikh, masa, tempat, dan nombor WhatsApp mestilah terang dan mudah dibaca tanpa silau.
+2. Tiada Maklumat Tercicir: Ekstrak nama penceramah penuh berserta gelaran dan kelayakan akademik/institusi dalam kurungan jika ada.
+3. Tarikh Hijrah Wajib: Pastikan sentiasa ada tarikh hijrah yang bersesuaian (cth: "24 Jamadilawal 1448H").
+4. Padanan Tema Warna:
+   - 'zamrud-emas': Kuliah pengajian umum, kuliah subuh/maghrib, majlis ilmu (Hijau zamrud baldu + emas)
+   - 'nilam-malam': Program Ramadan, Solat Hajat, Nuzul Quran, Qiamullail (Biru nilam pekat + bintang emas)
+   - 'hijau-harmoni': Gotong-royong, riadah kariah, kebersihan alam sekitar (Hijau daun segar + putih bersih)
+   - 'merak-anggun': Kursus pengurusan jenazah, fardhu ain, bengkel belia, motivasi keluarga (Biru merak laut + ambar)
+   - 'fajar-lembut': Infaq, wakaf, derma tabung masjid, bantuan prihatin (Krim gading + emas coklat)
+5. Padanan Gaya Seni Latar Visual Islamik:
+   - 'kubah-menara': Kubah masjid dan menara diiringi cahaya lembut emas (Sesuai untuk kuliah agama rasmi)
+   - 'mihrab-lentera': Gerbang mihrab dan lampu pelita/lentera fanous (Sesuai untuk solat hajat, doa selamat, infaq)
+   - 'bulan-bintang': Bulan sabit berseri dan buruj bintang (Sesuai untuk program Ramadan, Nuzul Quran, iftar)
+   - 'arabesque-bintang': Corak geometri arabesque Rub El Hizb 8 penjuru (Sesuai untuk kursus, bengkel, seminar)
+   - 'moden': Garisan geometri bersih dan sudut anggun (Sesuai untuk gotong-royong, riadah, belia)
+6. Padanan Susun Atur:
+   - 'gerbang-islami': Gerbang Kubah Klasik
+   - 'moden-bersih': Moden Bersih
+   - 'sepanduk-elegan': Sepanduk Di-Raja`;
+
+    const prompt = `Analisis teks pengumuman/WhatsApp berikut dan hasilkan spesifikasi reka bentuk poster grafik rasmi dalam format JSON:
 {
-  "title": "Tajuk utama acara yang jelas, ringkas dan menarik (cth: Meniti Jalan Taqwa & Ketenangan Hati Dalam Kehidupan)",
-  "subCategory": "Salah satu daripada: Kuliah Agama | Gotong-Royong | Program Ramadan | Solat Hajat | Infaq & Wakaf | Kursus & Bengkel | Aktiviti Komuniti",
-  "speaker": "Nama penceramah/tokoh jemputan bersama gelaran penuh (cth: Ustaz Dr. Hj. Mohd Fauzi bin Mustaffa). JANGAN tinggalkan nama penceramah jika ada!",
-  "speakerTitle": "Gelaran peranan penceramah (cth: Penceramah Jemputan / Tetamu Khas / Imam Bertugas)",
-  "speakerCredential": "Kelayakan, jawatan atau institusi penceramah (cth: Pensyarah Kanan UIA)",
+  "title": "Tajuk utama acara yang padat, jelas dan berwibawa (cth: Meniti Jalan Taqwa & Ketenangan Hati Dalam Kehidupan)",
+  "subCategory": "Kuliah Agama | Gotong-Royong | Program Ramadan | Solat Hajat | Infaq & Wakaf | Kursus & Bengkel | Aktiviti Komuniti",
+  "speaker": "Nama penceramah/tokoh jemputan bersama gelaran penuh (cth: Ustaz Dr. Hj. Mohd Fauzi bin Mustaffa)",
+  "speakerTitle": "Gelaran peranan (cth: Penceramah Jemputan / Tetamu Khas / Imam Bertugas)",
+  "speakerCredential": "Kelayakan, jawatan atau institusi (cth: Pensyarah Kanan UIA)",
   "date": "Tarikh hari dan masihi (cth: Sabtu, 14 November 2026)",
-  "hijriDate": "Tarikh hijrah yang bersesuaian atau ringkas (cth: 24 Jamadilawal 1448H)",
+  "hijriDate": "Tarikh hijrah (cth: 24 Jamadilawal 1448H)",
   "time": "Masa berlangsung (cth: Selepas Solat Maghrib (Jam 7:45 Malam))",
   "venue": "Nama masjid/surau/lokasi (cth: Masjid Al-Falah, Seksyen 9, Shah Alam)",
   "organizer": "Pihak penganjur (cth: Biro Dakwah Masjid Al-Falah)",
   "contactNumber": "Nama pegawai dan nombor telefon untuk dihubungi (cth: Haji Razak (019-2345678))",
-  "notes": "Pesanan atau jemputan ringkas (cth: Semua muslimin dan muslimat dijemput hadir bersama keluarga. Jamuan makan malam disediakan selepas solat Isyak.)",
-  "suggestedTheme": "Salah satu: zamrud-emas | nilam-malam | hijau-harmoni | merak-anggun | fajar-lembut",
-  "suggestedLayout": "Salah satu: gerbang-islami | moden-bersih | sepanduk-elegan"
+  "notes": "Pesanan atau jemputan ringkas (cth: Jamuan makan malam disediakan selepas solat Isyak. Semua dijemput hadir.)",
+  "suggestedTheme": "zamrud-emas | nilam-malam | hijau-harmoni | merak-anggun | fajar-lembut",
+  "suggestedLayout": "gerbang-islami | moden-bersih | sepanduk-elegan",
+  "decorativeStyle": "kubah-menara | mihrab-lentera | arabesque-bintang | bulan-bintang | moden"
 }
-
-Panduan Pemilihan Tema Warna Poster:
-- 'zamrud-emas': Hijau Zamrud & Emas (Pilihan utama masjid: Anggun, berwibawa, dan menyejukkan hati. Sesuai untuk kuliah pengajian umum, kuliah subuh/maghrib, majlis ilmu)
-- 'nilam-malam': Nilam Malam & Bintang (Sesuai untuk program malam, Ramadan, Solat Hajat, dan Nuzul Quran)
-- 'hijau-harmoni': Hijau Daun Harmoni (Sesuai untuk gotong-royong, riadah kariah, dan kemasyarakatan)
-- 'merak-anggun': Merak Laut & Emas (Sesuai untuk kursus belia, bengkel ilmu, dan seminar keluarga)
-- 'fajar-lembut': Krim Hangat & Ambar Di-Raja (Tema cerah bersahaja: Sangat jelas dan mudah dibaca, infaq, wakaf, kutipan amal)
-
-Panduan Pemilihan Gaya Susun Atur:
-- 'gerbang-islami': Gerbang Kubah (Sesuai untuk acara agama rasmi, masjid, solat hajat, program Ramadan)
-- 'moden-bersih': Moden Bersih (Sesuai untuk gotong-royong, kursus belia, aktiviti kemasyarakatan)
-- 'sepanduk-elegan': Sepanduk (Sesuai untuk kempen infaq, pengumuman ringkas, pelancaran wakaf)
-
-Syarat Wajib Semua Poster:
-- 'hijriDate': WAJIB sentiasa disediakan tarikh hijrah (cth: "24 Jamadilawal 1448H"). Jika tiada dalam teks, letakkan tarikh hijrah yang munasabah.
-- Semua maklumat penting (Penceramah, Kelayakan, Hubungi / WhatsApp) WAJIB diekstrak sepenuhnya jika terdapat dalam teks!
 
 Teks pengumuman pengguna:
 """
 ${rawText}
 """`;
 
-    const response = await ai.models.generateContent({
+    const generatePromise = ai.models.generateContent({
       model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
+        systemInstruction,
         responseMimeType: 'application/json',
       },
     });
 
+    // 6-second timeout race: fallback to heuristic immediately if network latency occurs
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Gemini API timeout')), 6000)
+    );
+
+    const response = await Promise.race([generatePromise, timeoutPromise]);
     const responseText = response.text || '{}';
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     const parsedData = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(responseText);
@@ -329,6 +350,7 @@ ${rawText}
         notes: parsedData.notes || heuristic.notes || 'Semua muslimin dan muslimat dijemput hadir.',
         suggestedTheme: parsedData.suggestedTheme || heuristic.suggestedTheme || 'zamrud-emas',
         suggestedLayout: parsedData.suggestedLayout || heuristic.suggestedLayout || 'gerbang-islami',
+        decorativeStyle: parsedData.decorativeStyle || heuristic.decorativeStyle || 'kubah-menara',
       },
       source: 'gemini',
     });

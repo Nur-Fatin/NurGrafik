@@ -32,6 +32,159 @@ function drawIslamicStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, 
   ctx.restore();
 }
 
+// Draw Crescent Moon
+function drawCrescentMoon(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  radius: number,
+  color: string,
+  glowColor: string
+) {
+  ctx.save();
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = color;
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, -Math.PI * 0.35, Math.PI * 0.9, false);
+  ctx.bezierCurveTo(cx - radius * 0.1, cy + radius * 0.5, cx + radius * 0.35, cy - radius * 0.2, cx, cy - radius);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+// Draw Hanging Islamic Lantern (Fanous)
+function drawHangingLantern(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  chainLength: number,
+  scale: number,
+  theme: any
+) {
+  ctx.save();
+  // Chain
+  ctx.strokeStyle = theme.accentGold;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x, 32);
+  ctx.lineTo(x, 32 + chainLength);
+  ctx.stroke();
+
+  const cy = 32 + chainLength;
+
+  // Lantern Cap
+  ctx.fillStyle = theme.accentGold;
+  ctx.beginPath();
+  ctx.moveTo(x - 14 * scale, cy);
+  ctx.lineTo(x + 14 * scale, cy);
+  ctx.lineTo(x, cy - 12 * scale);
+  ctx.closePath();
+  ctx.fill();
+
+  // Glass Body
+  ctx.fillStyle = 'rgba(255, 235, 175, 0.38)';
+  ctx.strokeStyle = theme.accentGold;
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(x - 14 * scale, cy);
+  ctx.lineTo(x - 20 * scale, cy + 22 * scale);
+  ctx.lineTo(x - 10 * scale, cy + 44 * scale);
+  ctx.lineTo(x + 10 * scale, cy + 44 * scale);
+  ctx.lineTo(x + 20 * scale, cy + 22 * scale);
+  ctx.lineTo(x + 14 * scale, cy);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Candlelight Glow
+  const glow = ctx.createRadialGradient(x, cy + 22 * scale, 2, x, cy + 22 * scale, 34 * scale);
+  glow.addColorStop(0, '#FFFBEB');
+  glow.addColorStop(0.35, 'rgba(251, 191, 36, 0.7)');
+  glow.addColorStop(1, 'rgba(251, 191, 36, 0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x, cy + 22 * scale, 34 * scale, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Base finial & pendant drop
+  ctx.fillStyle = theme.accentGold;
+  ctx.beginPath();
+  ctx.arc(x, cy + 48 * scale, 4 * scale, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// Draw Grand Dome & Twin Minarets Silhouette
+function drawDomeAndMinaretsSilhouette(ctx: CanvasRenderingContext2D, width: number, theme: any) {
+  ctx.save();
+  const domeColor = theme.cardBorder;
+  const accentGold = theme.accentGold;
+
+  // Central Dome Arch & Apex
+  ctx.strokeStyle = domeColor;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  const domeW = 340;
+  const domeLeft = (width - domeW) / 2;
+  const domeRight = domeLeft + domeW;
+  const baseLine = 190;
+
+  ctx.moveTo(domeLeft, baseLine);
+  ctx.bezierCurveTo(domeLeft + 20, baseLine - 95, width / 2 - 80, 52, width / 2, 44);
+  ctx.bezierCurveTo(width / 2 + 80, 52, domeRight - 20, baseLine - 95, domeRight, baseLine);
+  ctx.stroke();
+  ctx.fill();
+
+  // Crescent on top of Dome
+  drawCrescentMoon(ctx, width / 2, 28, 12, accentGold, theme.glowColor);
+
+  // Left Minaret
+  drawMinaret(ctx, 110, baseLine, accentGold);
+  // Right Minaret
+  drawMinaret(ctx, width - 110, baseLine, accentGold);
+
+  ctx.restore();
+}
+
+function drawMinaret(ctx: CanvasRenderingContext2D, x: number, baseY: number, color: string) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.8;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+
+  // Shaft
+  ctx.beginPath();
+  ctx.moveTo(x - 12, baseY);
+  ctx.lineTo(x - 9, 86);
+  ctx.lineTo(x + 9, 86);
+  ctx.lineTo(x + 12, baseY);
+  ctx.closePath();
+  ctx.stroke();
+
+  // Balcony
+  ctx.beginPath();
+  ctx.rect(x - 16, 80, 32, 6);
+  ctx.stroke();
+  ctx.fill();
+
+  // Spire & Domelet
+  ctx.beginPath();
+  ctx.moveTo(x - 8, 80);
+  ctx.quadraticCurveTo(x, 50, x, 45);
+  ctx.quadraticCurveTo(x, 50, x + 8, 80);
+  ctx.closePath();
+  ctx.stroke();
+
+  // Crescent finial
+  ctx.beginPath();
+  ctx.arc(x, 38, 4.5, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.restore();
+}
+
 // Draw repeated subtle Islamic geometric background grid
 function drawArabesquePattern(ctx: CanvasRenderingContext2D, width: number, height: number, color: string) {
   ctx.save();
@@ -41,6 +194,31 @@ function drawArabesquePattern(ctx: CanvasRenderingContext2D, width: number, heig
     for (let y = 60; y < height; y += stepY) {
       drawIslamicStar(ctx, x, y, 15, color);
     }
+  }
+  ctx.restore();
+}
+
+// Draw Celestial Crescent & Starfield
+function drawCrescentAndStarfield(ctx: CanvasRenderingContext2D, width: number, theme: any) {
+  ctx.save();
+  // Crescent in the upper right
+  drawCrescentMoon(ctx, width - 130, 95, 28, theme.accentGold, theme.glowColor);
+  drawIslamicStar(ctx, width - 90, 80, 10, theme.accentGold);
+
+  // Gentle twinkling stars across the upper sky
+  const starCoords = [
+    [120, 85, 7],
+    [240, 65, 5],
+    [320, 105, 8],
+    [400, 70, 6],
+    [680, 75, 7],
+    [760, 110, 5],
+    [840, 60, 8],
+    [980, 130, 6],
+  ];
+
+  for (const [sx, sy, sz] of starCoords) {
+    drawIslamicStar(ctx, sx, sy, sz, theme.accentGold);
   }
   ctx.restore();
 }
@@ -152,8 +330,50 @@ export async function renderPosterToCanvas(
   drawIslamicStar(ctx, cornerDist, height - cornerDist, 18, theme.accentGold);
   drawIslamicStar(ctx, width - cornerDist, height - cornerDist, 18, theme.accentGold);
 
-  // Dome Arch Motif for 'gerbang-islami'
-  if (data.layoutVariant === 'gerbang-islami') {
+  // 3b. Islamic Visual Decorative Styles
+  const decStyle = data.decorativeStyle || (data.layoutVariant === 'gerbang-islami' ? 'kubah-menara' : 'moden');
+
+  if (decStyle === 'kubah-menara') {
+    drawDomeAndMinaretsSilhouette(ctx, width, theme);
+  } else if (decStyle === 'mihrab-lentera') {
+    drawHangingLantern(ctx, 100, 70, 1.1, theme);
+    drawHangingLantern(ctx, width - 100, 70, 1.1, theme);
+    
+    // Mihrab Arch
+    ctx.beginPath();
+    const archTop = margin + 20;
+    const archW = innerW - 60;
+    const archH = 180;
+    const archLeft = (width - archW) / 2;
+    const archRight = archLeft + archW;
+
+    ctx.moveTo(archLeft, archTop + archH);
+    ctx.lineTo(archLeft, archTop + 70);
+    ctx.bezierCurveTo(archLeft, archTop + 15, width / 2 - 70, archTop, width / 2, archTop - 6);
+    ctx.bezierCurveTo(width / 2 + 70, archTop, archRight, archTop + 15, archRight, archTop + 70);
+    ctx.lineTo(archRight, archTop + archH);
+
+    ctx.strokeStyle = theme.cardBorder;
+    ctx.lineWidth = 2.2;
+    ctx.stroke();
+  } else if (decStyle === 'bulan-bintang') {
+    drawCrescentAndStarfield(ctx, width, theme);
+  } else if (decStyle === 'arabesque-bintang') {
+    // Four inner corner star medallions
+    drawIslamicStar(ctx, cornerDist + 35, cornerDist + 35, 12, theme.accentGold);
+    drawIslamicStar(ctx, width - cornerDist - 35, cornerDist + 35, 12, theme.accentGold);
+    drawIslamicStar(ctx, cornerDist + 35, height - cornerDist - 35, 12, theme.accentGold);
+    drawIslamicStar(ctx, width - cornerDist - 35, height - cornerDist - 35, 12, theme.accentGold);
+  } else {
+    // Moden: Sleek fine geometric pinstripes
+    ctx.strokeStyle = theme.cardBorder;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(margin + 16, margin + 16, innerW - 32, 4);
+    ctx.strokeRect(margin + 16, height - margin - 20, innerW - 32, 4);
+  }
+
+  // Dome Arch Motif for 'gerbang-islami' if not already drawn
+  if (data.layoutVariant === 'gerbang-islami' && decStyle !== 'kubah-menara' && decStyle !== 'mihrab-lentera') {
     ctx.beginPath();
     const archTop = margin + 20;
     const archW = innerW - 60;

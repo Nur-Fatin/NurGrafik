@@ -1,7 +1,7 @@
 /**
  * Intelligent text parser for Malaysian Mosque & Community announcements
  */
-import { PosterData, ThemeId, LayoutVariant } from '../types/poster';
+import { PosterData, ThemeId, LayoutVariant, DecorativeStyle } from '../types/poster';
 
 export function cleanQuotesAndStars(str: string): string {
   return str.replace(/[*_~`]/g, '').trim();
@@ -10,6 +10,7 @@ export function cleanQuotesAndStars(str: string): string {
 export function parseMalayEventText(rawText: string): Partial<PosterData> & {
   suggestedTheme: ThemeId;
   suggestedLayout: LayoutVariant;
+  decorativeStyle: DecorativeStyle;
 } {
   const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
   const textLower = rawText.toLowerCase();
@@ -17,6 +18,7 @@ export function parseMalayEventText(rawText: string): Partial<PosterData> & {
   let subCategory = 'Kuliah Agama';
   let suggestedTheme: ThemeId = 'zamrud-emas';
   let suggestedLayout: LayoutVariant = 'gerbang-islami';
+  let decorativeStyle: DecorativeStyle = 'kubah-menara';
 
   // 1. Program Ramadan, Solat Hajat, Nuzul Quran & Qiamullail -> Nilam Malam & Bintang
   if (
@@ -31,8 +33,10 @@ export function parseMalayEventText(rawText: string): Partial<PosterData> & {
   ) {
     if (textLower.includes('ramadan') || textLower.includes('iftar') || textLower.includes('berbuka') || textLower.includes('tarawih') || textLower.includes('nuzul')) {
       subCategory = 'Program Ramadan';
+      decorativeStyle = 'bulan-bintang';
     } else {
       subCategory = 'Solat Hajat';
+      decorativeStyle = 'mihrab-lentera';
     }
     suggestedTheme = 'nilam-malam';
     suggestedLayout = 'gerbang-islami';
@@ -48,6 +52,7 @@ export function parseMalayEventText(rawText: string): Partial<PosterData> & {
     subCategory = 'Gotong-Royong';
     suggestedTheme = 'hijau-harmoni';
     suggestedLayout = 'moden-bersih';
+    decorativeStyle = 'moden';
   } 
   // 3. Kursus, Bengkel, Jenazah, Seminar -> Merak Laut & Emas
   else if (
@@ -60,6 +65,7 @@ export function parseMalayEventText(rawText: string): Partial<PosterData> & {
     subCategory = 'Kursus & Bengkel';
     suggestedTheme = 'merak-anggun';
     suggestedLayout = 'moden-bersih';
+    decorativeStyle = 'arabesque-bintang';
   } 
   // 4. Infaq, Wakaf, Derma, Sumbangan -> Krim Hangat & Ambar Di-Raja
   else if (
@@ -73,12 +79,14 @@ export function parseMalayEventText(rawText: string): Partial<PosterData> & {
     subCategory = 'Infaq & Wakaf';
     suggestedTheme = 'fajar-lembut';
     suggestedLayout = 'sepanduk-elegan';
+    decorativeStyle = 'mihrab-lentera';
   } 
   // 5. Kuliah Agama, Pengajian Umum, Masjid -> Hijau Zamrud & Emas (Pilihan Utama Masjid)
   else {
     subCategory = 'Kuliah Agama';
     suggestedTheme = 'zamrud-emas';
     suggestedLayout = 'gerbang-islami';
+    decorativeStyle = 'kubah-menara';
   }
 
   // Find Speaker and Credentials
@@ -217,5 +225,6 @@ export function parseMalayEventText(rawText: string): Partial<PosterData> & {
     notes: notes.slice(0, 140),
     suggestedTheme,
     suggestedLayout,
+    decorativeStyle,
   };
 }
